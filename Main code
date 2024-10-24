@@ -1,0 +1,206 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+
+using namespace std;
+
+class Car {
+public:
+    int id;
+    string make;
+    string model;
+    int year;
+    bool isRented;
+
+    Car(int id, string make, string model, int year)
+        : id(id), make(make), model(model), year(year), isRented(false) {}
+};
+
+class Customer {
+public:
+    int id;
+    string name;
+    string contactDetails;
+
+    Customer(int id, string name, string contactDetails)
+        : id(id), name(name), contactDetails(contactDetails) {}
+};
+
+class Rental {
+public:
+    int rentalId;
+    int carId;
+    int customerId;
+    string rentalDate;
+    string returnDate;
+
+    Rental(int rentalId, int carId, int customerId, string rentalDate, string returnDate)
+        : rentalId(rentalId), carId(carId), customerId(customerId), rentalDate(rentalDate), returnDate(returnDate) {}
+};
+
+void addCar(vector<Car>& cars, Car car) {
+    cars.push_back(car);
+}
+
+void addCustomer(vector<Customer>& customers, Customer customer) {
+    customers.push_back(customer);
+}
+
+void rentCar(vector<Rental>& rentals, Rental rental) {
+    rentals.push_back(rental);
+}
+
+void returnCar(vector<Rental>& rentals, int rentalId, string returnDate) {
+    for (auto& rental : rentals) {
+        if (rental.rentalId == rentalId) {
+            rental.returnDate = returnDate;
+            break;
+        }
+    }
+}
+
+void writeDataToTextFile(const vector<Car>& cars, const vector<Customer>& customers, const vector<Rental>& rentals) {
+    ofstream outFile("car_rental_data.txt");
+
+    outFile << "Cars:\n";
+    for (const auto& car : cars) {
+        outFile << "ID: " << car.id << ", Make: " << car.make << ", Model: " << car.model << ", Year: " << car.year << ", Is Rented: " << (car.isRented ? "Yes" : "No") << "\n";
+    }
+
+    outFile << "\nCustomers:\n";
+    for (const auto& customer : customers) {
+        outFile << "ID: " << customer.id << ", Name: " << customer.name << ", Contact: " << customer.contactDetails << "\n";
+    }
+
+    outFile << "\nRentals:\n";
+    for (const auto& rental : rentals) {
+        outFile << "Rental ID: " << rental.rentalId << ", Car ID: " << rental.carId << ", Customer ID: " << rental.customerId << ", Rental Date: " << rental.rentalDate << ", Return Date: " << rental.returnDate << "\n";
+    }
+
+    outFile.close();
+}
+
+void displayForm() {
+    cout << "Welcome to Car Rental Management System\n";
+    cout << "1. Add Car\n";
+    cout << "2. Add Customer\n";
+    cout << "3. Rent Car\n";
+    cout << "4. Return Car\n";
+    cout << "5. Display Data\n";
+    cout << "6. Exit\n";
+    cout << "Choose an option: ";
+}
+
+void handleForm(vector<Car>& cars, vector<Customer>& customers, vector<Rental>& rentals) {
+    int choice;
+    cin >> choice;
+
+    switch (choice) {
+    case 1: {
+        int id, year;
+        string make, model;
+        cout << "Enter Car ID: ";
+        cin >> id;
+        cout << "Enter Make: ";
+        cin >> make;
+        cout << "Enter Model: ";
+        cin >> model;
+        cout << "Enter Year: ";
+        cin >> year;
+        addCar(cars, Car(id, make, model, year));
+        break;
+    }
+    case 2: {
+        int id;
+        string name, contactDetails;
+        cout << "Enter Customer ID: ";
+        cin >> id;
+        cout << "Enter Name: ";
+        cin >> name;
+        cout << "Enter Contact Details: ";
+        cin >> contactDetails;
+        addCustomer(customers, Customer(id, name, contactDetails));
+        break;
+    }
+    case 3: {
+        int rentalId, carId, customerId;
+        string rentalDate;
+        cout << "Enter Rental ID: ";
+        cin >> rentalId;
+        cout << "Enter Car ID: ";
+        cin >> carId;
+        cout << "Enter Customer ID: ";
+        cin >> customerId;
+        cout << "Enter Rental Date: ";
+        cin >> rentalDate;
+        rentCar(rentals, Rental(rentalId, carId, customerId, rentalDate, ""));
+        for (auto& car : cars) {
+            if (car.id == carId) {
+                car.isRented = true;
+                break;
+            }
+        }
+        break;
+    }
+    case 4: {
+        int rentalId;
+        string returnDate;
+        cout << "Enter Rental ID: ";
+        cin >> rentalId;
+        cout << "Enter Return Date: ";
+        cin >> returnDate;
+        returnCar(rentals, rentalId, returnDate);
+        for (auto& rental : rentals) {
+            if (rental.rentalId == rentalId) {
+                for (auto& car : cars) {
+                    if (car.id == rental.carId) {
+                        car.isRented = false;
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+        break;
+    }
+    case 5: {
+        cout << "Cars:\n";
+        for (const auto& car : cars) {
+            cout << "ID: " << car.id << ", Make: " << car.make << ", Model: " << car.model << ", Year: " << car.year << ", Is Rented: " << (car.isRented ? "Yes" : "No") << "\n";
+        }
+
+        cout << "\nCustomers:\n";
+        for (const auto& customer : customers) {
+            cout << "ID: " << customer.id << ", Name: " << customer.name << ", Contact: " << customer.contactDetails << "\n";
+        }
+
+        cout << "\nRentals:\n";
+        for (const auto& rental : rentals) {
+            cout << "Rental ID: " << rental.rentalId << ", Car ID: " << rental.carId << ", Customer ID: " << rental.customerId << ", Rental Date: " << rental.rentalDate << ", Return Date: " << rental.returnDate << "\n";
+        }
+        break;
+    }
+    case 6: {
+        writeDataToTextFile(cars, customers, rentals);
+        cout << "Data saved to 'car_rental_data.txt'. Exiting.\n";
+        exit(0);
+    }
+    default:
+        cout << "Invalid option. Please try again.\n";
+        break;
+    }
+}
+
+int main() {
+    vector<Car> cars;
+    vector<Customer> customers;
+    vector<Rental> rentals;
+
+    while (true) {
+        displayForm();
+        handleForm(cars, customers, rentals);
+    }
+
+    return 0;
+}
